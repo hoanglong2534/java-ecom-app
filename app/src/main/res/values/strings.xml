@@ -1,0 +1,29 @@
+<resources>
+    <string name="app_name">ShopEasy</string>
+    
+    <!-- Common strings -->
+    <string name="welcome_back">Hi, Welcome back! 👋</string>
+    <string name="find_products">Find your favorite products</string>
+    <string name="special_offer">Special Offer</string>
+    <string name="up_to_discount">Up to 50% OFF</string>
+    <string name="on_selected_items">On selected items</string>
+    <string name="shop_now">Shop Now</string>
+    <string name="categories">Categories</string>
+    <string name="featured_products">Featured Products</string>
+    <string name="special_offers">Special Offers</string>
+    <string name="see_all">See All</string>
+    <string name="search_hint">Search products...</string>
+    <string name="add_to_cart">Add to Cart</string>
+    <string name="buy_now">Buy Now</string>
+    <string name="cart">Cart</string>
+    <string name="total">Total</string>
+    <string name="checkout">Checkout</string>
+    <string name="tagline">Your Ultimate Shopping Experience</string>
+    
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_categories">Categories</string>
+    <string name="nav_favorites">Favorites</string>
+    <string name="nav_cart">Cart</string>
+    <string name="nav_profile">Profile</string>
+</resources>
