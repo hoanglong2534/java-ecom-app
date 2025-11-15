@@ -1,184 +1,100 @@
-# ShopEasy - E-Commerce Android App
+# G-Ky Store - Ứng dụng Bán hàng Android
 
-## Mô tả
-ShopEasy là một ứng dụng mua sắm trực tuyến hiện đại được phát triển bằng Java cho Android. Ứng dụng có giao diện đẹp mắt, thân thiện với người dùng và tích hợp đầy đủ các tính năng của một ứng dụng E-Commerce.
+## 1. Giới thiệu
 
-## Tính năng chính
+Đây là một dự án ứng dụng Android mô phỏng một sàn thương mại điện tử đơn giản. Ứng dụng được xây dựng nhằm mục đích học tập và áp dụng các kiến trúc, thư viện phổ biến trong phát triển Android.
 
-### 🎨 Giao diện người dùng
-- **Splash Screen**: Màn hình chào mừng với animation đẹp mắt
-- **Home Screen**: Trang chủ với banner khuyến mãi, danh mục sản phẩm và sản phẩm nổi bật
-- **Product Grid/List**: Hiển thị sản phẩm dưới dạng lưới và danh sách
-- **Product Detail**: Trang chi tiết sản phẩm với hình ảnh, mô tả, giá cả
-- **Shopping Cart**: Giỏ hàng với tính năng thêm/xóa/cập nhật số lượng
-- **Bottom Navigation**: Điều hướng dưới cùng với 5 tab chính
+## 2. Công nghệ & Kiến trúc sử dụng (Tech Stack & Architecture)
 
-### 🛍️ Tính năng mua sắm
-- **Browse Products**: Duyệt sản phẩm theo danh mục
-- **Search**: Tìm kiếm sản phẩm
-- **Favorites**: Thêm sản phẩm vào danh sách yêu thích
-- **Add to Cart**: Thêm sản phẩm vào giỏ hàng
-- **Price Display**: Hiển thị giá gốc, giá khuyến mãi và % giảm giá
-- **Product Rating**: Đánh giá sản phẩm với sao và số lượng review
+- **Ngôn ngữ:** Java
+- **Kiến trúc:** Repository Pattern
+- **Cơ sở dữ liệu:** Room Persistence Library (để lưu trữ dữ liệu sản phẩm, người dùng, giỏ hàng).
+- **Luồng bất đồng bộ:** `ExecutorService` để xử lý các tác vụ nền (database operations).
+- **Giao diện người dùng (UI):**
+  - Android UI Toolkit (XML Layouts).
+  - `RecyclerView` để hiển thị các danh sách động.
+- **Tải ảnh:** Glide (Thư viện tải và cache ảnh hiệu quả).
+- **Design Pattern:** Singleton (Sử dụng cho các lớp quản lý như `DBRepository`, `AuthManager`, `CartManager`).
 
-### 📱 Danh mục sản phẩm
-- **Smartphones**: iPhone, Samsung Galaxy, v.v.
-- **Laptops**: MacBook, Dell XPS, v.v.
-- **Audio**: AirPods, Sony WH-1000XM5, v.v.
-- **Accessories**: Apple Watch, iPad, v.v.
-- **Fashion**: Nike shoes, v.v.
-- **Photography**: Camera Canon, v.v.
-- **Gaming**: PlayStation 5, v.v.
+## 3. Tính năng chính
 
-## Cấu trúc dự án
+**Đối với Người dùng (User):**
 
-### 📁 Models
-- `Product.java`: Model cho sản phẩm
-- `Category.java`: Model cho danh mục
-- `CartItem.java`: Model cho item trong giỏ hàng
+- Đăng ký và đăng nhập tài khoản.
+- Xem danh sách sản phẩm trên trang chủ.
+- Xem thông tin chi tiết của từng sản phẩm.
+- Thêm sản phẩm vào giỏ hàng cá nhân.
+- Quản lý giỏ hàng (thay đổi số lượng, xóa sản phẩm).
+- Thực hiện quy trình thanh toán (mô phỏng) với việc nhập thông tin giao hàng.
 
-### 📁 Adapters
-- `ProductAdapter.java`: Adapter hiển thị danh sách sản phẩm
-- `CategoryAdapter.java`: Adapter hiển thị danh mục
-- `CartAdapter.java`: Adapter hiển thị giỏ hàng
+**Đối với Quản trị viên (Admin):**
 
-### 📁 Activities
-- `SplashActivity.java`: Màn hình splash
-- `MainActivity.java`: Màn hình chính
-- `ProductDetailActivity.java`: Chi tiết sản phẩm
-- `CartActivity.java`: Giỏ hàng
+- Toàn bộ quyền của Người dùng.
+- Thêm sản phẩm mới (bao gồm ảnh, tên, giá, mô tả...).
+- Sửa thông tin chi tiết của sản phẩm đã có.
 
-### 📁 Utils
-- `CartManager.java`: Quản lý giỏ hàng (Singleton pattern)
-- `DataUtils.java`: Cung cấp dữ liệu mẫu
+## 4. Cấu trúc thư mục dự án
 
-### 📁 Resources
-- **Layouts**: XML layouts cho từng màn hình
-- **Drawables**: Icons, backgrounds, gradients
-- **Colors**: Bảng màu của ứng dụng
-- **Strings**: Chuỗi văn bản đa ngôn ngữ
-- **Animations**: Hiệu ứng chuyển cảnh
-
-## Công nghệ sử dụng
-
-### 🔧 Core Technologies
-- **Java**: Ngôn ngữ lập trình chính
-- **Android SDK**: Phát triển ứng dụng Android
-- **Material Design**: Thiết kế giao diện theo chuẩn Google
-
-### 📚 Libraries
-- **Glide**: Load và cache hình ảnh từ URL
-- **RecyclerView**: Hiển thị danh sách hiệu quả
-- **CardView**: Thiết kế card đẹp mắt
-- **ViewPager2**: Slider hình ảnh
-- **ConstraintLayout**: Layout linh hoạt
-
-### 🎨 Design Features
-- **Gradient Backgrounds**: Nền gradient đẹp mắt
-- **Material Cards**: Thẻ sản phẩm với shadow
-- **Custom Icons**: Icons được thiết kế riêng
-- **Responsive Layout**: Giao diện thích ứng nhiều kích thước màn hình
-- **Smooth Animations**: Hiệu ứng chuyển cảnh mượt mà
-
-## Hướng dẫn cài đặt
-
-### 📋 Yêu cầu hệ thống
-- Android Studio Arctic Fox trở lên
-- Android SDK 24+ (Android 7.0)
-- Java 11
-- Gradle 7.0+
-
-### 🚀 Cách chạy ứng dụng
-1. Clone repository
-2. Mở project trong Android Studio
-3. Sync Gradle
-4. Build và chạy trên device/emulator
-
-### 📱 APK Build
-```bash
-./gradlew assembleDebug
+```
+app/src/main/
+├── java/com/longg/gky/
+│   ├── adapters/        # Chứa các Adapter cho RecyclerView
+│   ├── data/            # Quản lý dữ liệu và CSDL
+│   │   ├── dao/         # Data Access Objects (DAO) cho Room
+│   │   ├── entities/    # Định nghĩa các bảng (Entities) cho Room
+│   │   ├── AppDatabase.java    # Khởi tạo và cấu hình Room Database
+│   │   └── DBRepository.java   # Repository: trung gian truy cập dữ liệu
+│   ├── models/          # Các lớp Plain Old Java Object (POJO)
+│   └── utils/           # Các lớp tiện ích, quản lý trạng thái
+│   └── *.java           # Các Activity chính
+│
+└── res/
+    ├── layout/          # Giao diện (XML)
+    ├── drawable/        # Tài nguyên ảnh
+    └── values/          # Tài nguyên giá trị (strings, colors, dimensions)
 ```
 
-## Màn hình ứng dụng
+## 5. Luồng hoạt động chi tiết
 
-### 🌟 Splash Screen
-- Logo ứng dụng với animation
-- Thương hiệu "ShopEasy"
-- Tagline hấp dẫn
+1.  **Khởi động & Tải dữ liệu ban đầu**
+    - `MainActivity` được khởi chạy.
+    - Trong `onCreate`, nó gọi `DBRepository.get().getAllProducts()` để lấy danh sách sản phẩm.
+    - `DBRepository` truy cập `productDao` của Room để thực hiện query `SELECT * FROM products`.
+    - Dữ liệu `List<ProductEntity>` được trả về, `MainActivity` chuyển đổi nó thành `List<Product>` và đưa vào `ProductAdapter` để hiển thị lên `RecyclerView`.
 
-### 🏠 Home Screen
-- Welcome message cá nhân hóa
-- Search bar thông minh
-- Banner khuyến mãi eye-catching
-- Grid danh mục sản phẩm
-- Sản phẩm nổi bật
-- Sản phẩm khuyến mãi đặc biệt
+2.  **Đăng ký / Đăng nhập**
+    - Người dùng vào `ProfileActivity` và chọn Đăng nhập hoặc Đăng ký.
+    - **Đăng ký (`SignUpActivity`):** Người dùng nhập thông tin. Nút đăng ký sẽ lưu thông tin người dùng (tên, mật khẩu, vai trò 'USER') vào `SharedPreferences` thông qua `AuthManager`.
+    - **Đăng nhập (`LoginActivity`):** Người dùng nhập tên và mật khẩu. `AuthManager` sẽ kiểm tra thông tin này với dữ liệu đã lưu trong `SharedPreferences` để xác thực.
+    - Sau khi đăng nhập, `ProfileActivity` cập nhật giao diện, hiển thị thông tin người dùng và các chức năng tương ứng (ví dụ: nút "Thêm sản phẩm" cho Admin).
 
-### 🛒 Product Features
-- Hình ảnh sản phẩm chất lượng cao từ Unsplash
-- Badge giảm giá nổi bật
-- Nút yêu thích dễ sử dụng
-- Thông tin chi tiết: tên, thương hiệu, giá, đánh giá
-- Multiple colors và sizes
+3.  **Thêm sản phẩm vào giỏ hàng**
+    - Từ `MainActivity`, người dùng nhấn vào một sản phẩm.
+    - Một `Intent` được tạo để mở `ProductDetailActivity`, truyền `product_id` của sản phẩm được chọn.
+    - Trong `ProductDetailActivity`, người dùng nhấn nút "Thêm vào giỏ hàng".
+    - `CartManager.getInstance().addToCart(product)` được gọi.
+    - `CartManager` tìm xem sản phẩm đã có trong giỏ hàng (trong bộ nhớ) của người dùng chưa. Nếu có, nó tăng số lượng. Nếu chưa, nó tạo một `CartItem` mới.
+    - `CartManager` gọi phương thức `persistCartItem()`, phương thức này tạo một `CartItemEntity`.
+    - `DBRepository.get().addOrUpdateCartItemAsync(entity)` được gọi. `DBRepository` sẽ tự động lấy `userName` từ `AuthManager` và gán vào `entity` trước khi insert/update vào CSDL Room thông qua `cartDao`.
 
-### 🛍️ Shopping Cart
-- Quản lý số lượng sản phẩm
-- Tính toán tổng tiền tự động
-- Xóa sản phẩm khỏi giỏ hàng
-- Badge số lượng trên icon cart
+4.  **Xem giỏ hàng & Thanh toán**
+    - Người dùng vào `CartActivity`.
+    - `CartActivity` lấy danh sách `CartItem` từ `CartManager.getInstance().getCartItems()` và hiển thị qua `CartAdapter`.
+    - Khi người dùng nhấn nút thanh toán, `CheckoutActivity` được mở.
+    - Người dùng nhập thông tin giao hàng. Nút "Đặt hàng" sẽ kiểm tra tính hợp lệ của thông tin.
+    - Nếu hợp lệ, `CartManager.getInstance().clearCart()` được gọi. Lệnh này sẽ xóa toàn bộ `CartItemEntity` của người dùng hiện tại khỏi CSDL Room và xóa dữ liệu trong bộ nhớ của `CartManager`.
 
-## Đặc điểm nổi bật
-
-### 🎯 User Experience
-- **Intuitive Navigation**: Điều hướng trực quan
-- **Fast Loading**: Tải nhanh với Glide
-- **Smooth Scrolling**: Cuộn mượt mà
-- **Responsive Touch**: Phản hồi nhanh khi chạm
-
-### 🎨 Visual Design
-- **Modern UI**: Giao diện hiện đại
-- **Consistent Colors**: Bảng màu nhất quán
-- **Beautiful Typography**: Typography đẹp mắt
-- **Professional Icons**: Icons chuyên nghiệp
-
-### 🔧 Technical Excellence
-- **Clean Architecture**: Kiến trúc rõ ràng
-- **Efficient Memory**: Quản lý bộ nhớ hiệu quả
-- **Error Handling**: Xử lý lỗi tốt
-- **Performance Optimized**: Tối ưu hiệu suất
-
-## Hình ảnh sản phẩm
-
-Ứng dụng sử dụng hình ảnh chất lượng cao từ Unsplash.com:
-- **iPhones**: Hình ảnh iPhone thực tế
-- **Laptops**: MacBook, Dell XPS
-- **Accessories**: Apple Watch, AirPods
-- **Fashion**: Nike sneakers
-- **Electronics**: Camera, gaming console
-
-## Future Enhancements
-
-### 🚀 Planned Features
-- **User Authentication**: Đăng nhập/đăng ký
-- **Payment Integration**: Tích hợp thanh toán
-- **Order History**: Lịch sử đơn hàng
-- **Push Notifications**: Thông báo đẩy
-- **Wishlist**: Danh sách yêu thích
-- **Product Reviews**: Đánh giá sản phẩm
-- **Filter & Sort**: Lọc và sắp xếp sản phẩm
-
-### 🌐 Technical Improvements
-- **API Integration**: Kết nối API thực tế
-- **Database**: SQLite/Room database
-- **Offline Support**: Hỗ trợ offline
-- **Multi-language**: Đa ngôn ngữ
-- **Dark Theme**: Chế độ tối
-
-## Kết luận
-
-ShopEasy là một ứng dụng E-Commerce hoàn chỉnh với giao diện đẹp mắt, tính năng đầy đủ và trải nghiệm người dùng tuyệt vời. Ứng dụng được phát triển theo các chuẩn modern Android development và sẵn sàng cho việc mở rộng thêm tính năng.
+5.  **Quản lý sản phẩm (Luồng Admin)**
+    - **Thêm sản phẩm:**
+        - Trong `ProfileActivity`, Admin nhấn "Thêm sản phẩm", một `AlertDialog` hiện ra.
+        - Admin nhập thông tin và chọn ảnh. `imagePickerLauncher` xử lý việc chọn ảnh và trả về một `Uri`.
+        - Khi nhấn "Lưu", phương thức `saveProduct` được gọi. Nó sao chép file ảnh từ `Uri` nhận được vào bộ nhớ trong của ứng dụng (`/data/data/com.longg.gky/files/product_images/`) và lấy đường dẫn tuyệt đối của file đã sao chép.
+        - Đường dẫn này được lưu vào trường `imageUrl` của `ProductEntity`, sau đó `DBRepository` sẽ lưu sản phẩm mới này vào CSDL.
+    - **Sửa sản phẩm:**
+        - Trong `ProductDetailActivity`, Admin nhấn "Sửa", một `AlertDialog` tương tự hiện ra.
+        - Logic hoạt động tương tự như thêm sản phẩm. Nếu Admin chọn ảnh mới, ảnh sẽ được sao chép và đường dẫn mới sẽ được lưu. Nếu không, đường dẫn ảnh cũ được giữ nguyên.
+        - `DBRepository` sẽ cập nhật (`UPDATE`) thông tin sản phẩm trong CSDL.
+        - Sau khi cập nhật thành công, `loadProductData()` được gọi lại để tải lại dữ liệu mới nhất từ CSDL và hiển thị lên màn hình chi tiết.
 
 ---
-**Developer**: Longg  
-**Version**: 1.0  
-**Last Updated**: November 2024
+*Cập nhật lần cuối vào ngày 16/11/2025 bởi: **[hoanglong2534](https://github.com/hoanglong2534)***
