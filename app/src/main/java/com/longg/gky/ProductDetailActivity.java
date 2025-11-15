@@ -1,51 +1,72 @@
 package com.longg.gky;
 
+import android.content.ContentResolver;
+import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.text.TextUtils;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.webkit.MimeTypeMap;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import com.bumptech.glide.Glide;
+import com.longg.gky.data.DBRepository;
+import com.longg.gky.data.entities.ProductEntity;
 import com.longg.gky.models.Product;
+import com.longg.gky.utils.AuthManager;
 import com.longg.gky.utils.CartManager;
-import com.longg.gky.utils.DataUtils;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.DecimalFormat;
-import java.util.List;
 
 public class ProductDetailActivity extends AppCompatActivity {
 
-    private Toolbar toolbar;
     private ImageView ivProductImage;
-    private TextView tvProductName;
-    private TextView tvProductBrand;
-    private TextView tvProductPrice;
-    private TextView tvOriginalPrice;
-    private TextView tvProductDescription;
-    private TextView tvRating;
-    private TextView tvReviewCount;
-    private TextView tvStock;
-    private ImageView ivFavorite;
-    private Button btnAddToCart;
-    private Button btnBuyNow;
-
+    private TextView tvProductName, tvProductBrand, tvProductPrice, tvOriginalPrice, tvProductDescription;
+    private Button btnAddToCart, btnBuyNow, btnEditProduct;
+    private Toolbar toolbar;
     private Product product;
-    private CartManager cartManager;
-    private DecimalFormat priceFormat;
+    private Uri selectedImageUri;
+    private ImageView dialogProductImage;
+
+    private final ActivityResultLauncher<Intent> imagePickerLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    selectedImageUri = result.getData().getData();
+                    if (dialogProductImage != null) {
+                        Glide.with(this).load(selectedImageUri).into(dialogProductImage);
+                    }
+                }
+            });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_product_detail);
-
         initViews();
         setupToolbar();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
         loadProductData();
-        setupClickListeners();
     }
 
     private void initViews() {
@@ -56,92 +77,187 @@ public class ProductDetailActivity extends AppCompatActivity {
         tvProductPrice = findViewById(R.id.tvProductPrice);
         tvOriginalPrice = findViewById(R.id.tvOriginalPrice);
         tvProductDescription = findViewById(R.id.tvProductDescription);
-        tvRating = findViewById(R.id.tvRating);
-        tvReviewCount = findViewById(R.id.tvReviewCount);
-        tvStock = findViewById(R.id.tvStock);
-        ivFavorite = findViewById(R.id.ivFavorite);
         btnAddToCart = findViewById(R.id.btnAddToCart);
         btnBuyNow = findViewById(R.id.btnBuyNow);
-
-        cartManager = CartManager.getInstance();
-        priceFormat = new DecimalFormat("$#,##0.00");
+        btnEditProduct = findViewById(R.id.btnEditProduct);
     }
 
     private void setupToolbar() {
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setDisplayShowHomeEnabled(true);
-            getSupportActionBar().setTitle("Product Details");
+            getSupportActionBar().setTitle("Chi tiết sản phẩm");
         }
     }
 
     private void loadProductData() {
         int productId = getIntent().getIntExtra("product_id", -1);
-        if (productId != -1) {
-            List<Product> products = DataUtils.getSampleProducts();
-            for (Product p : products) {
-                if (p.getId() == productId) {
-                    product = p;
-                    break;
-                }
-            }
-        }
-
-        if (product != null) {
-            displayProductInfo();
-        } else {
-            Toast.makeText(this, "Product not found", Toast.LENGTH_SHORT).show();
+        if (productId == -1) {
             finish();
+            return;
         }
+        DBRepository.get().getProductByIdAsync(productId, productEntity -> {
+            if (productEntity == null) {
+                finish();
+                return;
+            }
+            this.product = Product.fromEntity(productEntity);
+            runOnUiThread(this::displayProductDetails);
+        });
     }
 
-    private void displayProductInfo() {
+    private void displayProductDetails() {
         tvProductName.setText(product.getName());
         tvProductBrand.setText(product.getBrand());
-        tvProductPrice.setText(priceFormat.format(product.getPrice()));
         tvProductDescription.setText(product.getDescription());
-        tvRating.setText(String.valueOf(product.getRating()));
-        tvReviewCount.setText("(" + product.getReviewCount() + " reviews)");
-        tvStock.setText(product.getStock() + " in stock");
 
-        // Handle original price
+        DecimalFormat formatter = new DecimalFormat("#,##0 ₫");
+        tvProductPrice.setText(formatter.format(product.getPrice()));
+
         if (product.hasDiscount()) {
-            tvOriginalPrice.setText(priceFormat.format(product.getOriginalPrice()));
             tvOriginalPrice.setVisibility(View.VISIBLE);
+            tvOriginalPrice.setPaintFlags(tvOriginalPrice.getPaintFlags() | android.graphics.Paint.STRIKE_THRU_TEXT_FLAG);
+            tvOriginalPrice.setText(formatter.format(product.getOriginalPrice()));
         } else {
             tvOriginalPrice.setVisibility(View.GONE);
         }
 
-        // Set favorite icon
-        updateFavoriteIcon();
+        String imageUrl = product.getImageUrl();
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            if (imageUrl.startsWith("/")) {
+                Glide.with(this).load(new File(imageUrl)).placeholder(R.drawable.placeholder_product).error(R.drawable.placeholder_product).into(ivProductImage);
+            } else {
+                 try {
+                    int resId = Integer.parseInt(imageUrl.trim());
+                    Glide.with(this).load(resId).placeholder(R.drawable.placeholder_product).error(R.drawable.placeholder_product).into(ivProductImage);
+                } catch (NumberFormatException e) {
+                    Glide.with(this).load(Uri.parse(imageUrl)).placeholder(R.drawable.placeholder_product).error(R.drawable.placeholder_product).into(ivProductImage);
+                }
+            }
+        } else {
+            Glide.with(this).load(R.drawable.placeholder_product).into(ivProductImage);
+        }
 
-        // Set placeholder image
-        ivProductImage.setImageResource(R.drawable.placeholder_product);
+
+        if (AuthManager.getRole(this).equals(AuthManager.ROLE_ADMIN)) {
+            btnEditProduct.setVisibility(View.VISIBLE);
+        } else {
+            btnEditProduct.setVisibility(View.GONE);
+        }
+
+        setupClickListeners();
     }
 
     private void setupClickListeners() {
-        ivFavorite.setOnClickListener(v -> {
-            product.setFavorite(!product.isFavorite());
-            updateFavoriteIcon();
-            String message = product.isFavorite() ? "Added to favorites" : "Removed from favorites";
-            Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-        });
-
         btnAddToCart.setOnClickListener(v -> {
-            cartManager.addToCart(product);
-            Toast.makeText(this, "Added to cart", Toast.LENGTH_SHORT).show();
+            CartManager.getInstance().addToCart(product);
+            Toast.makeText(this, "Đã thêm vào giỏ hàng", Toast.LENGTH_SHORT).show();
         });
-
         btnBuyNow.setOnClickListener(v -> {
-            cartManager.addToCart(product);
-            Toast.makeText(this, "Proceeding to checkout...", Toast.LENGTH_SHORT).show();
-            // Here you would typically navigate to checkout
+            CartManager.getInstance().addToCart(product);
+            startActivity(new Intent(this, CartActivity.class));
         });
+        btnEditProduct.setOnClickListener(v -> showEditProductDialog());
     }
 
-    private void updateFavoriteIcon() {
-        ivFavorite.setImageResource(product.isFavorite() ? R.drawable.ic_favorite : R.drawable.ic_favorite_border);
+    private void showEditProductDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.activity_add_product, null);
+        builder.setView(dialogView);
+
+        dialogProductImage = dialogView.findViewById(R.id.ivProductImage);
+        Button btnSelectImage = dialogView.findViewById(R.id.btnSelectImage);
+        EditText etProductName = dialogView.findViewById(R.id.etProductName);
+        EditText etProductBrand = dialogView.findViewById(R.id.etProductBrand);
+        EditText etProductPrice = dialogView.findViewById(R.id.etProductPrice);
+        EditText etDiscount = dialogView.findViewById(R.id.etDiscount);
+        EditText etProductDescription = dialogView.findViewById(R.id.etProductDescription);
+        Button btnUpdate = dialogView.findViewById(R.id.btnAddProduct);
+
+        etProductName.setText(product.getName());
+        etProductBrand.setText(product.getBrand());
+        etProductPrice.setText(String.valueOf((int)product.getOriginalPrice()));
+        etDiscount.setText(String.valueOf(product.getDiscountPercentage()));
+        etProductDescription.setText(product.getDescription());
+        btnUpdate.setText("Lưu thay đổi");
+
+        String imageUrl = product.getImageUrl();
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            if (imageUrl.startsWith("/")) {
+                Glide.with(this).load(new File(imageUrl)).into(dialogProductImage);
+            } else {
+                try {
+                    int resId = Integer.parseInt(imageUrl.trim());
+                    Glide.with(this).load(resId).into(dialogProductImage);
+                } catch (NumberFormatException e) {
+                    Glide.with(this).load(Uri.parse(imageUrl)).into(dialogProductImage);
+                }
+            }
+        }
+        selectedImageUri = null;
+
+        final AlertDialog dialog = builder.create();
+
+        btnSelectImage.setOnClickListener(v -> {
+            Intent intent = new Intent(Intent.ACTION_PICK);
+            intent.setType("image/*");
+            imagePickerLauncher.launch(intent);
+        });
+
+        btnUpdate.setOnClickListener(v -> {
+            updateProduct(dialog, etProductName, etProductBrand, etProductPrice, etDiscount, etProductDescription);
+        });
+
+        dialog.show();
+    }
+
+    private String saveImageToInternalStorage(Uri uri) {
+        if (uri == null) return null;
+        File internalDir = getDir("product_images", Context.MODE_PRIVATE);
+        String fileExtension = getFileExtension(uri);
+        File imageFile = new File(internalDir, System.currentTimeMillis() + "." + fileExtension);
+
+        try (InputStream in = getContentResolver().openInputStream(uri);
+             OutputStream out = new FileOutputStream(imageFile)) {
+            byte[] buffer = new byte[1024];
+            int len;
+            while ((len = in.read(buffer)) > 0) {
+                out.write(buffer, 0, len);
+            }
+            return imageFile.getAbsolutePath();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private String getFileExtension(Uri uri) {
+        ContentResolver contentResolver = getContentResolver();
+        MimeTypeMap mime = MimeTypeMap.getSingleton();
+        return mime.getExtensionFromMimeType(contentResolver.getType(uri));
+    }
+
+    private void updateProduct(AlertDialog dialog, EditText name, EditText brand, EditText price, EditText discount, EditText description) {
+        ProductEntity productToUpdate = product.toEntity();
+        productToUpdate.name = name.getText().toString().trim();
+        productToUpdate.brand = brand.getText().toString().trim();
+        productToUpdate.originalPrice = Double.parseDouble(price.getText().toString());
+        int discountPercent = TextUtils.isEmpty(discount.getText().toString()) ? 0 : Integer.parseInt(discount.getText().toString());
+        productToUpdate.price = productToUpdate.originalPrice * (100 - discountPercent) / 100.0;
+        productToUpdate.description = description.getText().toString().trim();
+
+        if (selectedImageUri != null) {
+            String imagePath = saveImageToInternalStorage(selectedImageUri);
+            productToUpdate.imageUrl = imagePath;
+        }
+
+        DBRepository.get().updateProductAsync(productToUpdate, () -> {
+            runOnUiThread(() -> {
+                dialog.dismiss();
+                Toast.makeText(this, "Cập nhật thành công!", Toast.LENGTH_SHORT).show();
+                loadProductData();
+            });
+        });
     }
 
     @Override

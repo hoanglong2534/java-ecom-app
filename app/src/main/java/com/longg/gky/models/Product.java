@@ -1,5 +1,7 @@
 package com.longg.gky.models;
 
+import com.longg.gky.data.entities.ProductEntity;
+
 import java.util.List;
 
 public class Product {
@@ -21,8 +23,8 @@ public class Product {
 
     public Product() {}
 
-    public Product(int id, String name, String description, double price, 
-                   double originalPrice, String imageUrl, String category, 
+    public Product(int id, String name, String description, double price,
+                   double originalPrice, String imageUrl, String category,
                    float rating, int reviewCount, int stock, String brand) {
         this.id = id;
         this.name = name;
@@ -36,6 +38,40 @@ public class Product {
         this.stock = stock;
         this.brand = brand;
         this.isFavorite = false;
+    }
+
+    public static Product fromEntity(ProductEntity entity) {
+        Product product = new Product();
+        product.setId(entity.id);
+        product.setName(entity.name);
+        product.setDescription(entity.description);
+        product.setPrice(entity.price);
+        product.setOriginalPrice(entity.originalPrice);
+        product.setImageUrl(entity.imageUrl);
+        product.setCategory(entity.category);
+        product.setRating(entity.rating);
+        product.setReviewCount(entity.reviewCount);
+        product.setFavorite(entity.isFavorite);
+        product.setStock(entity.stock);
+        product.setBrand(entity.brand);
+        return product;
+    }
+
+    public ProductEntity toEntity() {
+        ProductEntity entity = new ProductEntity();
+        entity.id = this.id;
+        entity.name = this.name;
+        entity.description = this.description;
+        entity.price = this.price;
+        entity.originalPrice = this.originalPrice;
+        entity.imageUrl = this.imageUrl;
+        entity.category = this.category;
+        entity.rating = this.rating;
+        entity.reviewCount = this.reviewCount;
+        entity.isFavorite = this.isFavorite;
+        entity.stock = this.stock;
+        entity.brand = this.brand;
+        return entity;
     }
 
     // Getters and setters

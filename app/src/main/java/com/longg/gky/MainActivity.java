@@ -3,171 +3,136 @@ package com.longg.gky;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.EditText;
-import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
+import androidx.appcompat.widget.SearchView;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.longg.gky.adapters.CategoryAdapter;
 import com.longg.gky.adapters.ProductAdapter;
-import com.longg.gky.models.Category;
 import com.longg.gky.models.Product;
-import com.longg.gky.utils.CartManager;
-import com.longg.gky.utils.DataUtils;
+import com.longg.gky.utils.AuthManager;
+import com.longg.gky.viewmodels.MainViewModel;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
-public class MainActivity extends AppCompatActivity implements 
-        CategoryAdapter.OnCategoryClickListener, 
-        ProductAdapter.OnProductClickListener {
+public class MainActivity extends AppCompatActivity implements ProductAdapter.OnProductClickListener {
 
-    // Views
-    private EditText etSearch;
-    private FrameLayout ivCart;
-    private TextView tvCartBadge;
-    private TextView tvSeeAllFeatured;
-    private TextView tvSeeAllOffers;
-    private RecyclerView rvCategories;
-    private RecyclerView rvFeaturedProducts;
-    private RecyclerView rvSpecialOffers;
-    private BottomNavigationView bottomNavigation;
-
-    // Adapters
-    private CategoryAdapter categoryAdapter;
-    private ProductAdapter featuredProductAdapter;
-    private ProductAdapter specialOffersAdapter;
-
-    // Data
-    private CartManager cartManager;
+    private ProductAdapter productAdapter;
+    private MainViewModel mainViewModel;
+    private TextView tvCartBadge, tvWelcomeMessage;
+    private List<Product> allProducts = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        
+
+        mainViewModel = new ViewModelProvider(this).get(MainViewModel.class);
+
         initViews();
-        initData();
         setupRecyclerViews();
-        setupClickListeners();
-        updateCartBadge();
+        setupBottomNavigation();
+        setupSearch();
+        observeViewModel();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mainViewModel.loadCartItemCount();
+        updateWelcomeMessage();
     }
 
     private void initViews() {
-        etSearch = findViewById(R.id.etSearch);
-        ivCart = findViewById(R.id.ivCart);
-        tvCartBadge = findViewById(R.id.tvCartBadge);
-        tvSeeAllFeatured = findViewById(R.id.tvSeeAllFeatured);
-        tvSeeAllOffers = findViewById(R.id.tvSeeAllOffers);
-        rvCategories = findViewById(R.id.rvCategories);
-        rvFeaturedProducts = findViewById(R.id.rvFeaturedProducts);
-        rvSpecialOffers = findViewById(R.id.rvSpecialOffers);
-        bottomNavigation = findViewById(R.id.bottomNavigation);
+        tvWelcomeMessage = findViewById(R.id.tvWelcomeMessage);
+        View cartContainer = findViewById(R.id.cart_container);
+        tvCartBadge = findViewById(R.id.tv_cart_badge);
+
+        cartContainer.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, CartActivity.class);
+            startActivity(intent);
+        });
     }
 
-    private void initData() {
-        cartManager = CartManager.getInstance();
+    private void updateWelcomeMessage() {
+        if (AuthManager.isLoggedIn(this)) {
+            tvWelcomeMessage.setText("Xin chào, " + AuthManager.getUserName(this) + "!");
+        } else {
+            tvWelcomeMessage.setText("Đăng nhập để trải nghiệm");
+        }
     }
 
     private void setupRecyclerViews() {
-        // Categories RecyclerView
-        LinearLayoutManager categoriesLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
-        rvCategories.setLayoutManager(categoriesLayoutManager);
-        
-        List<Category> categories = DataUtils.getSampleCategories();
-        categoryAdapter = new CategoryAdapter(this, categories);
-        categoryAdapter.setOnCategoryClickListener(this);
-        rvCategories.setAdapter(categoryAdapter);
-
-        // Featured Products RecyclerView
-        LinearLayoutManager featuredLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
-        rvFeaturedProducts.setLayoutManager(featuredLayoutManager);
-        
-        List<Product> featuredProducts = DataUtils.getFeaturedProducts();
-        featuredProductAdapter = new ProductAdapter(this, featuredProducts, R.layout.item_product_featured);
-        featuredProductAdapter.setOnProductClickListener(this);
-        rvFeaturedProducts.setAdapter(featuredProductAdapter);
-
-        // Special Offers RecyclerView
-        GridLayoutManager offersLayoutManager = new GridLayoutManager(this, 2);
-        rvSpecialOffers.setLayoutManager(offersLayoutManager);
-        
-        List<Product> discountedProducts = DataUtils.getDiscountedProducts();
-        specialOffersAdapter = new ProductAdapter(this, discountedProducts, R.layout.item_product_grid);
-        specialOffersAdapter.setOnProductClickListener(this);
-        rvSpecialOffers.setAdapter(specialOffersAdapter);
+        RecyclerView rvProducts = findViewById(R.id.rv_new_products);
+        productAdapter = new ProductAdapter(this, new ArrayList<>(), R.layout.item_product_grid);
+        productAdapter.setOnProductClickListener(this);
+        rvProducts.setLayoutManager(new GridLayoutManager(this, 2));
+        rvProducts.setAdapter(productAdapter);
     }
 
-    private void setupClickListeners() {
-        ivCart.setOnClickListener(v -> openCart());
-        
-        tvSeeAllFeatured.setOnClickListener(v -> {
-            // Open all products activity
-            Toast.makeText(this, "Opening all featured products...", Toast.LENGTH_SHORT).show();
+    private void setupSearch() {
+        SearchView searchView = findViewById(R.id.search_view);
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                filterProducts(newText);
+                return true;
+            }
         });
-        
-        tvSeeAllOffers.setOnClickListener(v -> {
-            // Open all offers activity
-            Toast.makeText(this, "Opening all special offers...", Toast.LENGTH_SHORT).show();
+    }
+
+    private void filterProducts(String query) {
+        List<Product> filteredList = allProducts.stream()
+                .filter(product -> product.getName().toLowerCase().contains(query.toLowerCase()))
+                .collect(Collectors.toList());
+        productAdapter.updateProducts(filteredList);
+    }
+
+    private void observeViewModel() {
+        mainViewModel.getProducts().observe(this, products -> {
+            allProducts.clear();
+            allProducts.addAll(products);
+            productAdapter.updateProducts(products);
         });
-        
-        bottomNavigation.setOnItemSelectedListener(item -> {
+
+        mainViewModel.getCartItemCount().observe(this, count -> {
+            if (count > 0) {
+                tvCartBadge.setText(String.valueOf(count));
+                tvCartBadge.setVisibility(View.VISIBLE);
+            } else {
+                tvCartBadge.setVisibility(View.GONE);
+            }
+        });
+    }
+
+    private void setupBottomNavigation() {
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+        bottomNavigationView.setSelectedItemId(R.id.navigation_home);
+        bottomNavigationView.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
-            if (itemId == R.id.nav_home) {
-                // Already on home
+            if (itemId == R.id.navigation_home) {
                 return true;
-            } else if (itemId == R.id.nav_categories) {
-                Toast.makeText(this, "Categories clicked", Toast.LENGTH_SHORT).show();
-                return true;
-            } else if (itemId == R.id.nav_favorites) {
-                Toast.makeText(this, "Favorites clicked", Toast.LENGTH_SHORT).show();
-                return true;
-            } else if (itemId == R.id.nav_cart) {
-                openCart();
-                return true;
-            } else if (itemId == R.id.nav_profile) {
-                Toast.makeText(this, "Profile clicked", Toast.LENGTH_SHORT).show();
+            } else if (itemId == R.id.navigation_profile) {
+                startActivity(new Intent(MainActivity.this, ProfileActivity.class));
                 return true;
             }
             return false;
         });
     }
 
-    private void openCart() {
-        Intent intent = new Intent(this, CartActivity.class);
-        startActivity(intent);
-    }
-
-    private void updateCartBadge() {
-        int itemCount = cartManager.getCartItemCount();
-        if (itemCount > 0) {
-            tvCartBadge.setText(String.valueOf(itemCount));
-            tvCartBadge.setVisibility(View.VISIBLE);
-        } else {
-            tvCartBadge.setVisibility(View.GONE);
-        }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        updateCartBadge();
-    }
-
-    // CategoryAdapter.OnCategoryClickListener
-    @Override
-    public void onCategoryClick(Category category) {
-        Toast.makeText(this, "Category: " + category.getName(), Toast.LENGTH_SHORT).show();
-        // Open category products activity
-    }
-
-    // ProductAdapter.OnProductClickListener
     @Override
     public void onProductClick(Product product) {
         Intent intent = new Intent(this, ProductDetailActivity.class);
@@ -177,7 +142,6 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onFavoriteClick(Product product) {
-        String message = product.isFavorite() ? "Added to favorites" : "Removed from favorites";
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+        // Not implemented
     }
 }

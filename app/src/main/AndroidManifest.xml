@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
+        android:name=".MyApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -24,21 +25,51 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        
+
         <activity
             android:name=".MainActivity"
             android:exported="false">
         </activity>
-        
+
         <activity
             android:name=".ProductDetailActivity"
             android:exported="false"
             android:parentActivityName=".MainActivity" />
-            
+
         <activity
             android:name=".CartActivity"
             android:exported="false"
             android:parentActivityName=".MainActivity" />
+
+        <activity
+            android:name=".ProductsListActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
+
+        <activity
+            android:name=".ProfileActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
+
+        <activity
+            android:name=".CheckoutActivity"
+            android:exported="false"
+            android:parentActivityName=".CartActivity" />
+
+        <activity
+            android:name=".LoginActivity"
+            android:exported="false"
+            android:parentActivityName=".ProfileActivity" />
+
+        <activity
+            android:name=".ChangePasswordActivity"
+            android:exported="false"
+            android:parentActivityName=".ProfileActivity" />
+
+        <activity
+            android:name=".SignUpActivity"
+            android:exported="false"
+            android:parentActivityName=".ProfileActivity" />
     </application>
 
 </manifest>

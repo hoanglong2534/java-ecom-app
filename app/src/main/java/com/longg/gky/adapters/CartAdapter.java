@@ -1,6 +1,7 @@
 package com.longg.gky.adapters;
 
 import android.content.Context;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,9 +11,11 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.longg.gky.R;
 import com.longg.gky.models.CartItem;
 
+import java.io.File;
 import java.text.DecimalFormat;
 import java.util.List;
 
@@ -31,7 +34,7 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
     public CartAdapter(Context context, List<CartItem> cartItems) {
         this.context = context;
         this.cartItems = cartItems;
-        this.priceFormat = new DecimalFormat("$#,##0.00");
+        this.priceFormat = new DecimalFormat("#,##0 ₫");
     }
 
     public void setOnCartItemClickListener(OnCartItemClickListener listener) {
@@ -64,14 +67,8 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
     class CartViewHolder extends RecyclerView.ViewHolder {
 
         private ImageView ivProductImage;
-        private TextView tvProductName;
-        private TextView tvProductBrand;
-        private TextView tvProductPrice;
-        private TextView tvQuantity;
-        private ImageView ivDecrease;
-        private ImageView ivIncrease;
-        private ImageView ivRemove;
-        private TextView tvTotalPrice;
+        private TextView tvProductName, tvProductBrand, tvProductPrice, tvQuantity, tvTotalPrice;
+        private ImageView ivDecrease, ivIncrease, ivRemove;
 
         public CartViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -97,8 +94,21 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
             tvQuantity.setText(String.valueOf(cartItem.getQuantity()));
             tvTotalPrice.setText(priceFormat.format(cartItem.getTotalPrice()));
 
-            // Set placeholder image
-            ivProductImage.setImageResource(R.drawable.placeholder_product);
+            String imageUrl = cartItem.getProduct().getImageUrl();
+            if (imageUrl != null && !imageUrl.isEmpty()) {
+                if (imageUrl.startsWith("/")) {
+                    Glide.with(context).load(new File(imageUrl)).placeholder(R.drawable.placeholder_product).error(R.drawable.placeholder_product).into(ivProductImage);
+                } else {
+                     try {
+                        int resId = Integer.parseInt(imageUrl.trim());
+                        Glide.with(context).load(resId).placeholder(R.drawable.placeholder_product).error(R.drawable.placeholder_product).into(ivProductImage);
+                    } catch (NumberFormatException e) {
+                        Glide.with(context).load(Uri.parse(imageUrl)).placeholder(R.drawable.placeholder_product).error(R.drawable.placeholder_product).into(ivProductImage);
+                    }
+                }
+            } else {
+                Glide.with(context).load(R.drawable.placeholder_product).into(ivProductImage);
+            }
 
             // Set click listeners
             ivIncrease.setOnClickListener(v -> {
