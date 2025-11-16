@@ -1,5 +1,19 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
+}
+
+// Read GEMINI_API_KEY from local.properties or gradle.properties (do NOT commit secrets)
+val geminiKey: String = if (project.hasProperty("GEMINI_API_KEY")) {
+    project.property("GEMINI_API_KEY").toString()
+} else run {
+    val localProps = Properties()
+    val localFile = rootProject.file("local.properties")
+    if (localFile.exists()) {
+        localProps.load(localFile.inputStream())
+        localProps.getProperty("GEMINI_API_KEY", "")
+    } else ""
 }
 
 android {
@@ -14,6 +28,7 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String", "GEMINI_API_KEY", "\"$geminiKey\"")
     }
 
     buildTypes {
@@ -28,6 +43,7 @@ android {
 
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
 
     compileOptions {
@@ -66,6 +82,9 @@ dependencies {
 
     // SwipeRefreshLayout
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+
+    // OkHttp for simple HTTP requests (used by GeminiApiClient)
+    implementation("com.squareup.okhttp3:okhttp:4.11.0")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

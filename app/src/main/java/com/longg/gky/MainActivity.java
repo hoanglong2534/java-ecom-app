@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.longg.gky.adapters.ProductAdapter;
 import com.longg.gky.models.Product;
 import com.longg.gky.utils.AuthManager;
@@ -116,6 +117,18 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.On
                 tvCartBadge.setVisibility(View.GONE);
             }
         });
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        FloatingActionButton fab = findViewById(R.id.fab_chat);
+        if (fab != null) {
+            fab.setScaleX(0f);
+            fab.setScaleY(0f);
+            fab.animate().scaleX(1f).scaleY(1f).setDuration(300).setStartDelay(200).start();
+            fab.setOnClickListener(v -> startActivity(new android.content.Intent(MainActivity.this, com.longg.gky.chat.ChatActivity.class)));
+        }
     }
 
     private void setupBottomNavigation() {
