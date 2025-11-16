@@ -238,24 +238,48 @@ public class ProductDetailActivity extends AppCompatActivity {
     }
 
     private void updateProduct(AlertDialog dialog, EditText name, EditText brand, EditText price, EditText discount, EditText description) {
-        ProductEntity productToUpdate = product.toEntity();
-        productToUpdate.name = name.getText().toString().trim();
-        productToUpdate.brand = brand.getText().toString().trim();
-        productToUpdate.originalPrice = Double.parseDouble(price.getText().toString());
-        int discountPercent = TextUtils.isEmpty(discount.getText().toString()) ? 0 : Integer.parseInt(discount.getText().toString());
-        productToUpdate.price = productToUpdate.originalPrice * (100 - discountPercent) / 100.0;
-        productToUpdate.description = description.getText().toString().trim();
+        String nameString = name.getText().toString().trim();
+        String brandString = brand.getText().toString().trim();
+        String priceString = price.getText().toString();
+        String discountString = discount.getText().toString();
+        String descriptionString = description.getText().toString().trim();
+
+        double originalPrice = 0.0;
+        if (!TextUtils.isEmpty(priceString)) {
+            try {
+                originalPrice = Double.parseDouble(priceString);
+            } catch (NumberFormatException e) {
+                originalPrice = 0.0;
+            }
+        }
+
+        int discountPercent = 0;
+        if (!TextUtils.isEmpty(discountString)) {
+            try {
+                discountPercent = Integer.parseInt(discountString);
+            } catch (NumberFormatException e) {
+                discountPercent = 0;
+            }
+        }
+
+        product.setName(nameString);
+        product.setBrand(brandString);
+        product.setOriginalPrice(originalPrice);
+        product.setDescription(descriptionString);
+        product.setPrice(originalPrice * (100 - discountPercent) / 100.0);
 
         if (selectedImageUri != null) {
             String imagePath = saveImageToInternalStorage(selectedImageUri);
-            productToUpdate.imageUrl = imagePath;
+            if (imagePath != null) {
+                product.setImageUrl(imagePath);
+            }
         }
 
-        DBRepository.get().updateProductAsync(productToUpdate, () -> {
+        DBRepository.get().updateProductAsync(product.toEntity(), () -> {
             runOnUiThread(() -> {
                 dialog.dismiss();
                 Toast.makeText(this, "Cập nhật thành công!", Toast.LENGTH_SHORT).show();
-                loadProductData();
+                displayProductDetails();
             });
         });
     }
