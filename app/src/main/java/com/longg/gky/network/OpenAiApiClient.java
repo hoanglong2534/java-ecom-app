@@ -12,8 +12,8 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 
-// LƯU Ý: Tên lớp được giữ nguyên nhưng logic bên trong đã được thay đổi cho OpenAI.
-public class GeminiApiClient {
+// LƯU Ý: Đã đổi tên class và logic để hoạt động với OpenRouter
+public class OpenAiApiClient {
 
     private final OkHttpClient client = new OkHttpClient();
     private final String apiKey;
@@ -24,20 +24,20 @@ public class GeminiApiClient {
         void onError(String error);
     }
 
-    public GeminiApiClient(String apiKey, String model) {
+    public OpenAiApiClient(String apiKey, String model) {
         this.apiKey = apiKey;
-        // Đặt model mặc định là gpt-3.5-turbo của OpenAI
-        this.model = model == null ? "gpt-3.5-turbo" : model;
+        // Đặt model mặc định là của OpenRouter (ví dụ: gpt-3.5-turbo miễn phí của họ)
+        this.model = model == null ? "openai/gpt-3.5-turbo" : model;
     }
 
     public void generateText(String prompt, ResultCallback cb) {
-        // Endpoint của OpenAI
-        String url = "https://api.openai.com/v1/chat/completions";
+        // SỬA LỖI DỨT ĐIỂM: Dùng đúng URL của OpenRouter
+        String url = "https://openrouter.ai/api/v1/chat/completions";
 
         MediaType JSON = MediaType.get("application/json; charset=utf-8");
 
         try {
-            // Cấu trúc JSON body cho OpenAI
+            // Cấu trúc JSON body cho OpenRouter (tương tự OpenAI)
             JSONObject jsonBody = new JSONObject();
             jsonBody.put("model", this.model);
             JSONArray messages = new JSONArray();
@@ -46,14 +46,16 @@ public class GeminiApiClient {
             userMessage.put("content", prompt);
             messages.put(userMessage);
             jsonBody.put("messages", messages);
-            jsonBody.put("max_tokens", 256); // Giới hạn độ dài câu trả lời
 
             RequestBody body = RequestBody.create(jsonBody.toString(), JSON);
 
-            // OpenAI yêu cầu key trong Header, không phải trong URL
+            // OpenRouter yêu cầu key trong Header
             Request request = new Request.Builder()
                     .url(url)
                     .addHeader("Authorization", "Bearer " + apiKey)
+                    // OpenRouter yêu cầu thêm header này để họ biết ứng dụng của bạn là gì
+                    .addHeader("HTTP-Referer", "https://github.com/long2534/BTL_GKI") // Thay bằng link repo của bạn
+                    .addHeader("X-Title", "BTL_GKI") // Thay bằng tên app của bạn
                     .post(body)
                     .build();
 
@@ -84,7 +86,7 @@ public class GeminiApiClient {
         }
     }
 
-    // Hàm phân tích JSON cho phản hồi của OpenAI
+    // Hàm phân tích JSON cho OpenRouter (giống OpenAI)
     private String extractTextFromOpenAiResponse(String json) throws Exception {
         JSONObject obj = new JSONObject(json);
         JSONArray choices = obj.getJSONArray("choices");
@@ -96,7 +98,7 @@ public class GeminiApiClient {
             }
         }
         if (obj.has("error")) {
-            return "Lỗi từ OpenAI: " + obj.getJSONObject("error").getString("message");
+            return "Lỗi từ OpenRouter: " + obj.getJSONObject("error").getString("message");
         }
         throw new Exception("Không tìm thấy nội dung văn bản trong phản hồi.");
     }

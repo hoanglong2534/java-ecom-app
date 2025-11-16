@@ -11,8 +11,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.longg.gky.R;
-import com.longg.gky.network.GeminiApiClient;
-import com.longg.gky.BuildConfig;
+import com.longg.gky.network.OpenAiApiClient; // Đã đổi sang OpenAiApiClient
 
 public class ChatActivity extends AppCompatActivity {
 
@@ -33,12 +32,16 @@ public class ChatActivity extends AppCompatActivity {
         EditText et = findViewById(R.id.et_message);
         Button btn = findViewById(R.id.btn_send);
 
-        String apiKey = BuildConfig.GEMINI_API_KEY;
+
+        String apiKey = "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";
+
         if (apiKey == null || apiKey.isEmpty()) {
-            Toast.makeText(this, "Chưa cấu hình Gemini API key. Vui lòng thiết lập (local.properties).", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "API key rỗng!", Toast.LENGTH_LONG).show();
+            return;
         }
 
-        GeminiApiClient client = new GeminiApiClient(apiKey, null);
+        // Sử dụng class OpenAiApiClient mới
+        OpenAiApiClient client = new OpenAiApiClient(apiKey, null);
 
         btn.setOnClickListener(v -> {
             String text = et.getText().toString().trim();
@@ -52,7 +55,7 @@ public class ChatActivity extends AppCompatActivity {
             pb.setVisibility(View.VISIBLE);
             btn.setEnabled(false);
 
-            client.generateText(text, new GeminiApiClient.ResultCallback() {
+            client.generateText(text, new OpenAiApiClient.ResultCallback() {
                 @Override
                 public void onSuccess(String botText) {
                     runOnUiThread(() -> {
