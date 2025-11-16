@@ -31,4 +31,6 @@
     <string name="title_home">Trang chủ</string>
     <string name="title_profile">Hồ sơ</string>
     <string name="title_favorites">Yêu thích</string>
+    <!-- Gemini API key: set your key here or provide via secure build config. DO NOT commit secrets. -->
+    <string name="gemini_api_key"></string>
 </resources>

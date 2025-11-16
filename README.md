@@ -1,100 +1,110 @@
 # G-Ky Store - Ứng dụng Bán hàng Android
 
-## 1. Giới thiệu
+![Java](https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white) ![Android](https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white)
 
-Đây là một dự án ứng dụng Android mô phỏng một sàn thương mại điện tử đơn giản. Ứng dụng được xây dựng nhằm mục đích học tập và áp dụng các kiến trúc, thư viện phổ biến trong phát triển Android.
+Đây là dự án ứng dụng Android mô phỏng một sàn thương mại điện tử đơn giản, được xây dựng nhằm mục đích học tập và áp dụng các kiến trúc, thư viện phổ biến trong phát triển Android.
 
-## 2. Công nghệ & Kiến trúc sử dụng (Tech Stack & Architecture)
+## Tính năng chính
 
-- **Ngôn ngữ:** Java
-- **Kiến trúc:** Repository Pattern
-- **Cơ sở dữ liệu:** Room Persistence Library (để lưu trữ dữ liệu sản phẩm, người dùng, giỏ hàng).
-- **Luồng bất đồng bộ:** `ExecutorService` để xử lý các tác vụ nền (database operations).
-- **Giao diện người dùng (UI):**
-  - Android UI Toolkit (XML Layouts).
-  - `RecyclerView` để hiển thị các danh sách động.
-- **Tải ảnh:** Glide (Thư viện tải và cache ảnh hiệu quả).
-- **Design Pattern:** Singleton (Sử dụng cho các lớp quản lý như `DBRepository`, `AuthManager`, `CartManager`).
+*   **Người dùng:**
+    *   Đăng ký, đăng nhập tài khoản.
+    *   Xem danh sách sản phẩm, xem chi tiết.
+    *   Thêm sản phẩm vào giỏ hàng.
+    *   Quản lý giỏ hàng và thực hiện thanh toán (mô phỏng).
+*   **Quản trị viên (Admin):**
+    *   Thêm, sửa thông tin sản phẩm.
+*   **Chatbot AI:**
+    *   Tích hợp chatbot thông minh để trả lời các câu hỏi của người dùng thông qua OpenRouter.
 
-## 3. Tính năng chính
+## Công nghệ & Kiến trúc
 
-**Đối với Người dùng (User):**
+*   **Ngôn ngữ:** Java
+*   **Kiến trúc:** Repository Pattern, Singleton
+*   **Giao diện:** Android UI Toolkit (XML), `RecyclerView`, `CardView`.
+*   **Cơ sở dữ liệu:** Room Persistence Library.
+*   **Tác vụ nền:** `ExecutorService`.
+*   **Tải ảnh:** Glide.
+*   **Gọi API:** OkHttp.
+*   **AI Chatbot:** Tích hợp với API của OpenRouter.
 
-- Đăng ký và đăng nhập tài khoản.
-- Xem danh sách sản phẩm trên trang chủ.
-- Xem thông tin chi tiết của từng sản phẩm.
-- Thêm sản phẩm vào giỏ hàng cá nhân.
-- Quản lý giỏ hàng (thay đổi số lượng, xóa sản phẩm).
-- Thực hiện quy trình thanh toán (mô phỏng) với việc nhập thông tin giao hàng.
+## Hướng dẫn cài đặt và chạy dự án
 
-**Đối với Quản trị viên (Admin):**
+1.  **Clone repository về máy của bạn:**
+    ```bash
+    git clone https://github.com/hoanglong2534/BTL_GKI.git
+    ```
 
-- Toàn bộ quyền của Người dùng.
-- Thêm sản phẩm mới (bao gồm ảnh, tên, giá, mô tả...).
-- Sửa thông tin chi tiết của sản phẩm đã có.
+2.  **Mở dự án bằng Android Studio.**
 
-## 4. Cấu trúc thư mục dự án
+3.  **Cấu hình API Key:**
+    *   Tìm đến file `local.properties` ở thư mục gốc của dự án. Nếu chưa có, hãy tạo một file mới với tên này.
+    *   Thêm API key của bạn từ [OpenRouter](https://openrouter.ai/keys) vào file theo cú pháp sau:
+        ```properties
+        OPENROUTER_API_KEY="YOUR_API_KEY_HERE"
+        ```
+    *   **Lưu ý:** Thay `YOUR_API_KEY_HERE` bằng API key thật của bạn.
+
+4.  **Đồng bộ Gradle:**
+    *   Android Studio sẽ hiển thị thông báo yêu cầu đồng bộ. Nhấp vào "Sync Now".
+
+5.  **Chạy ứng dụng:**
+    *   Chọn thiết bị (máy ảo hoặc máy thật) và nhấn nút Run.
+
+## Luồng hoạt động chi tiết
+
+1.  **Khởi động & Tải dữ liệu ban đầu**
+    - `MainActivity` được khởi chạy. Trong phương thức `onCreate`, nó lấy instance của `DBRepository` (Singleton) và gọi `getAllProducts()`.
+    - `DBRepository` sử dụng `ExecutorService` để tạo một luồng nền mới. Điều này cực kỳ quan trọng để các tác vụ tốn thời gian như truy vấn CSDL không làm chặn luồng giao diện chính, tránh gây ra lỗi ANR (Application Not Responding).
+    - Trên luồng nền, `DBRepository` truy cập vào `AppDatabase.get().productDao().getAll()`. Lệnh này thực thi câu lệnh SQL `SELECT * FROM products` và trả về một `List<ProductEntity>`.
+    - Sau khi có kết quả, `DBRepository` sử dụng một `Handler` để gửi dữ liệu trở lại luồng chính (UI thread). Tại đây, callback mà `MainActivity` đã cung cấp sẽ được gọi.
+    - `MainActivity` nhận danh sách các `ProductEntity`, chuyển đổi chúng thành các model phù hợp với giao diện, và cập nhật vào `ProductAdapter`. Adapter sau đó sẽ thông báo cho `RecyclerView` để vẽ lại danh sách sản phẩm lên màn hình.
+
+2.  **Đăng ký / Đăng nhập**
+    - Người dùng vào `ProfileActivity`. Dựa vào trạng thái đăng nhập lấy từ `AuthManager.getInstance().isLoggedIn()`, giao diện sẽ hiển thị thông tin người dùng hoặc các nút Đăng nhập/Đăng ký.
+    - **Đăng ký (`SignUpActivity`):** Người dùng nhập thông tin. Nút đăng ký gọi `AuthManager.registerUser()`. Lớp này (một Singleton) sẽ dùng `SharedPreferences` để lưu thông tin người dùng, bao gồm tên đăng nhập, mật khẩu đã được mã hóa (để tránh lưu mật khẩu dạng text), và vai trò mặc định là 'USER'.
+    - **Đăng nhập (`LoginActivity`):** Người dùng nhập thông tin. `AuthManager.loginUser()` sẽ lấy thông tin đã lưu từ `SharedPreferences`, mã hóa mật khẩu người dùng vừa nhập và so sánh. Nếu khớp, trạng thái đăng nhập sẽ được cập nhật và lưu lại trong `AuthManager`.
+
+3.  **Thêm sản phẩm vào giỏ hàng**
+    - Từ `ProductDetailActivity`, người dùng nhấn "Thêm vào giỏ hàng".
+    - `CartManager.getInstance().addToCart(product)` được gọi. `CartManager` là một Singleton, đảm bảo chỉ có một giỏ hàng duy nhất tồn tại trong suốt vòng đời ứng dụng. Nó sử dụng một `HashMap` để lưu các sản phẩm trong bộ nhớ, cho phép truy cập và cập nhật số lượng ngay lập tức.
+    - Sau khi cập nhật giỏ hàng trong bộ nhớ, `CartManager` gọi `persistCartItem()` để đồng bộ thay đổi xuống CSDL. Phương thức này tạo ra một `CartItemEntity`.
+    - `DBRepository.get().addOrUpdateCartItemAsync(entity)` được gọi. Repository sẽ lấy tên người dùng hiện tại từ `AuthManager` để gán vào `CartItemEntity` trước khi dùng luồng nền để thực hiện thao tác "upsert" (insert hoặc update nếu đã tồn tại) vào CSDL Room.
+
+4.  **Xem giỏ hàng & Thanh toán**
+    - `CartActivity` lấy danh sách sản phẩm từ `CartManager` và hiển thị qua `CartAdapter`.
+    - Khi người dùng nhấn nút thanh toán trong `CheckoutActivity`, `CartManager.getInstance().clearCart()` được gọi.
+    - Phương thức này sẽ xóa dữ liệu trong `HashMap` của `CartManager`, đồng thời gọi `DBRepository.get().clearCartForCurrentUser()`. Repository sẽ dùng luồng nền để thực thi `cartDao.deleteCartByUsername()` nhằm xóa toàn bộ sản phẩm trong giỏ hàng của người dùng đó khỏi CSDL.
+
+5.  **Quản lý sản phẩm (Luồng Admin)**
+    - Khi Admin thêm/sửa sản phẩm và chọn một ảnh từ thư viện, `ActivityResultLauncher` sẽ trả về một `Uri` của ảnh đó.
+    - Phương thức `saveProduct` sẽ tạo một file mới trong bộ nhớ trong của ứng dụng (thư mục riêng tư, chỉ ứng dụng mới có thể truy cập). Nó đọc dữ liệu từ `Uri` và ghi vào file mới này.
+    - Đường dẫn tuyệt đối của file ảnh vừa tạo sẽ được lưu vào trường `imageUrl` của `ProductEntity`. Cách làm này đảm bảo ứng dụng không bị mất ảnh nếu người dùng xóa ảnh gốc khỏi thư viện.
+    - `DBRepository` sẽ lưu hoặc cập nhật `ProductEntity` này vào CSDL.
+
+6.  **Tương tác với Chatbot AI**
+    - Tại `ChatActivity`, API key được lấy một cách an toàn từ lớp `BuildConfig` (giá trị này được Gradle tiêm vào từ file `local.properties` lúc build ứng dụng, giúp key không bị lộ trong code).
+    - Khi người dùng gửi tin nhắn, `OpenAiApiClient.generateText()` được gọi. Lớp này sử dụng `OkHttp` để tạo và gửi một yêu cầu HTTP POST đến địa chỉ API của OpenRouter.
+    - Yêu cầu này chứa các Header quan trọng: `Authorization: Bearer <API_KEY>` để xác thực và `HTTP-Referer` để OpenRouter nhận dạng ứng dụng của bạn.
+    - `OkHttp` thực hiện yêu cầu một cách bất đồng bộ. Khi có phản hồi, callback `onResponse` được kích hoạt trên một luồng nền. Nó sẽ kiểm tra mã trạng thái HTTP, nếu thành công (200 OK) thì sẽ phân tích chuỗi JSON để lấy ra nội dung tin nhắn của bot.
+    - Cuối cùng, `runOnUiThread()` được gọi để đảm bảo việc cập nhật giao diện (thêm tin nhắn mới vào `RecyclerView`) được thực hiện một cách an toàn trên luồng UI chính.
+
+## Cấu trúc thư mục
 
 ```
 app/src/main/
 ├── java/com/longg/gky/
 │   ├── adapters/        # Chứa các Adapter cho RecyclerView
-│   ├── data/            # Quản lý dữ liệu và CSDL
-│   │   ├── dao/         # Data Access Objects (DAO) cho Room
-│   │   ├── entities/    # Định nghĩa các bảng (Entities) cho Room
-│   │   ├── AppDatabase.java    # Khởi tạo và cấu hình Room Database
-│   │   └── DBRepository.java   # Repository: trung gian truy cập dữ liệu
+│   ├── data/            # Quản lý CSDL (Room, DAO, Entities, Repository)
 │   ├── models/          # Các lớp Plain Old Java Object (POJO)
-│   └── utils/           # Các lớp tiện ích, quản lý trạng thái
+│   ├── network/         # Client gọi API (OpenAiApiClient)
+│   ├── utils/           # Các lớp tiện ích, quản lý trạng thái
 │   └── *.java           # Các Activity chính
 │
 └── res/
     ├── layout/          # Giao diện (XML)
-    ├── drawable/        # Tài nguyên ảnh
-    └── values/          # Tài nguyên giá trị (strings, colors, dimensions)
+    └── ...
 ```
 
-## 5. Luồng hoạt động chi tiết
-
-1.  **Khởi động & Tải dữ liệu ban đầu**
-    - `MainActivity` được khởi chạy.
-    - Trong `onCreate`, nó gọi `DBRepository.get().getAllProducts()` để lấy danh sách sản phẩm.
-    - `DBRepository` truy cập `productDao` của Room để thực hiện query `SELECT * FROM products`.
-    - Dữ liệu `List<ProductEntity>` được trả về, `MainActivity` chuyển đổi nó thành `List<Product>` và đưa vào `ProductAdapter` để hiển thị lên `RecyclerView`.
-
-2.  **Đăng ký / Đăng nhập**
-    - Người dùng vào `ProfileActivity` và chọn Đăng nhập hoặc Đăng ký.
-    - **Đăng ký (`SignUpActivity`):** Người dùng nhập thông tin. Nút đăng ký sẽ lưu thông tin người dùng (tên, mật khẩu, vai trò 'USER') vào `SharedPreferences` thông qua `AuthManager`.
-    - **Đăng nhập (`LoginActivity`):** Người dùng nhập tên và mật khẩu. `AuthManager` sẽ kiểm tra thông tin này với dữ liệu đã lưu trong `SharedPreferences` để xác thực.
-    - Sau khi đăng nhập, `ProfileActivity` cập nhật giao diện, hiển thị thông tin người dùng và các chức năng tương ứng (ví dụ: nút "Thêm sản phẩm" cho Admin).
-
-3.  **Thêm sản phẩm vào giỏ hàng**
-    - Từ `MainActivity`, người dùng nhấn vào một sản phẩm.
-    - Một `Intent` được tạo để mở `ProductDetailActivity`, truyền `product_id` của sản phẩm được chọn.
-    - Trong `ProductDetailActivity`, người dùng nhấn nút "Thêm vào giỏ hàng".
-    - `CartManager.getInstance().addToCart(product)` được gọi.
-    - `CartManager` tìm xem sản phẩm đã có trong giỏ hàng (trong bộ nhớ) của người dùng chưa. Nếu có, nó tăng số lượng. Nếu chưa, nó tạo một `CartItem` mới.
-    - `CartManager` gọi phương thức `persistCartItem()`, phương thức này tạo một `CartItemEntity`.
-    - `DBRepository.get().addOrUpdateCartItemAsync(entity)` được gọi. `DBRepository` sẽ tự động lấy `userName` từ `AuthManager` và gán vào `entity` trước khi insert/update vào CSDL Room thông qua `cartDao`.
-
-4.  **Xem giỏ hàng & Thanh toán**
-    - Người dùng vào `CartActivity`.
-    - `CartActivity` lấy danh sách `CartItem` từ `CartManager.getInstance().getCartItems()` và hiển thị qua `CartAdapter`.
-    - Khi người dùng nhấn nút thanh toán, `CheckoutActivity` được mở.
-    - Người dùng nhập thông tin giao hàng. Nút "Đặt hàng" sẽ kiểm tra tính hợp lệ của thông tin.
-    - Nếu hợp lệ, `CartManager.getInstance().clearCart()` được gọi. Lệnh này sẽ xóa toàn bộ `CartItemEntity` của người dùng hiện tại khỏi CSDL Room và xóa dữ liệu trong bộ nhớ của `CartManager`.
-
-5.  **Quản lý sản phẩm (Luồng Admin)**
-    - **Thêm sản phẩm:**
-        - Trong `ProfileActivity`, Admin nhấn "Thêm sản phẩm", một `AlertDialog` hiện ra.
-        - Admin nhập thông tin và chọn ảnh. `imagePickerLauncher` xử lý việc chọn ảnh và trả về một `Uri`.
-        - Khi nhấn "Lưu", phương thức `saveProduct` được gọi. Nó sao chép file ảnh từ `Uri` nhận được vào bộ nhớ trong của ứng dụng (`/data/data/com.longg.gky/files/product_images/`) và lấy đường dẫn tuyệt đối của file đã sao chép.
-        - Đường dẫn này được lưu vào trường `imageUrl` của `ProductEntity`, sau đó `DBRepository` sẽ lưu sản phẩm mới này vào CSDL.
-    - **Sửa sản phẩm:**
-        - Trong `ProductDetailActivity`, Admin nhấn "Sửa", một `AlertDialog` tương tự hiện ra.
-        - Logic hoạt động tương tự như thêm sản phẩm. Nếu Admin chọn ảnh mới, ảnh sẽ được sao chép và đường dẫn mới sẽ được lưu. Nếu không, đường dẫn ảnh cũ được giữ nguyên.
-        - `DBRepository` sẽ cập nhật (`UPDATE`) thông tin sản phẩm trong CSDL.
-        - Sau khi cập nhật thành công, `loadProductData()` được gọi lại để tải lại dữ liệu mới nhất từ CSDL và hiển thị lên màn hình chi tiết.
-
 ---
-*Cập nhật lần cuối vào ngày 16/11/2025 bởi: **[hoanglong2534](https://github.com/hoanglong2534)***
+
+*Đóng góp và phát triển bởi [hoanglong2534](https://github.com/hoanglong2534) và [Phong (Neil-06-hub)](https://github.com/Neil-06-hub)*

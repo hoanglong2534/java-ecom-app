@@ -70,6 +70,10 @@
             android:name=".SignUpActivity"
             android:exported="false"
             android:parentActivityName=".ProfileActivity" />
+        <activity
+            android:name=".chat.ChatActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
     </application>
 
 </manifest>
